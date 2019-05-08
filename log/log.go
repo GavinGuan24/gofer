@@ -9,7 +9,7 @@ import (
 var logger *os.File
 
 func init() {
-    file, e := os.OpenFile("./gofer.log", os.O_CREATE|os.O_RDWR, 0644)
+    file, e := os.OpenFile("./gofer.log", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
     if e != nil {
         Fatal(e)
     }

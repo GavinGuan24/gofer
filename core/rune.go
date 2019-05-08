@@ -1,56 +1,31 @@
-package views
+package core
 
 import (
-    "bytes"
     "fmt"
     "github.com/gdamore/tcell"
-    "github.com/mattn/go-runewidth"
 )
 
-// 某视图中字符位的描述, 位置由使用 Rune 的程序维护
-// combc 一般为 nil, 除非要处理 ZWJ(zero-width joiner) 问题
-type Rune struct {
-    mainc rune
-    combc []rune
-    style tcell.Style
+// 某视图中字符位的描述, 位置由使用 Rune 的程序维护.
+// 默认实现为 basicRune
+type Rune interface {
+    SetMainc(rune)
+    Mainc() rune
+    SetCombc([]rune)
+    Combc() []rune
+    SetStyle(tcell.Style)
+    Style() tcell.Style
+
+    fmt.Stringer
+    //给出当前内容需要的宽度
+    Width() int
 }
 
-func (r *Rune) String() string {
-    if r == nil {
-        return ""
-    }
-    if r.combc == nil || len(r.combc) == 0 {
-        return fmt.Sprintf("%c", r.mainc)
-    } else {
-        var buf bytes.Buffer
-        buf.WriteRune(r.mainc)
-        for _, t := range r.combc {
-            buf.WriteRune(t)
-        }
-        return fmt.Sprintf("%s",buf.String())
-    }
+
+func NewRune(mainc rune, combc []rune, style tcell.Style) Rune {
+    return BasicRune(mainc, combc, style)
 }
 
-func (r *Rune) Width() int {
-    if r.combc == nil || len(r.combc) == 0 {
-        return runewidth.RuneWidth(r.mainc)
-    }
-    for _, t := range r.combc {
-        if t == 0x200D {
-            return 2
-        }
-        if runewidth.RuneWidth(t) > 1 {
-            return 2
-        }
-    }
-    return 1
-}
-
-func NewRune(mainc rune, combc []rune, style tcell.Style) *Rune {
-    return &Rune{mainc, combc, style}
-}
-
-//以下这个文档是为了以后优化 方法<code>func (r *Rune) Width() int</code>
+//以下这个文档是为了以后优化 方法<code>Width() int</code>
 //
 //---------- rune 宽度判定(UTF-8), 关于 Unicode 12.0.0 文档的说明
 // http://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt

@@ -1,8 +1,5 @@
-package code
+package core
 
-import (
-    . "github.com/GavinGuan24/gofer/views"
-)
 
 type basicPoint struct {
     x, y int
@@ -40,7 +37,11 @@ func (p *basicPoint) Reverse() (pn Point) {
     if p == nil {
         return nil
     }
-    return NewPoint(-p.x, -p.y)
+    return BasicPoint(-p.x, -p.y)
+}
+
+func (p *basicPoint) Copy() (pn Point) {
+    return BasicPoint(p.x, p.y)
 }
 
 func (p *basicPoint) ChangeBaseByXY(x, y int) (pn Point) {

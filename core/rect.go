@@ -1,8 +1,4 @@
-package views
-
-import (
-    . "github.com/GavinGuan24/gofer/views/code"
-)
+package core
 
 // 矩形Rect 与 点Point 的位置关系
 type RectPointLoc int
@@ -42,6 +38,9 @@ type Rect interface {
     ContainPoint(p Point) bool
     // 是否与另一个矩形相交
     IntersectWith(r1 Rect) bool
+
+    // 复制一个自己
+    Copy() Rect
 
     // 使用 base 作为新的坐标轴原点, 更新自身坐标值.
     // 可参考 views.Point.ChangeBaseByXXX()

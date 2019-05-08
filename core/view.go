@@ -1,11 +1,10 @@
-package views
+package core
 
 import (
-    . "github.com/GavinGuan24/gofer/views/code"
     "github.com/gdamore/tcell"
 )
 
-// View 是对视图的抽象, 这里的默认实现是 <code>type basicView struct</code>
+// View 是对 [视图] 的抽象, 这里的默认实现是 <code>type basicView struct</code>
 type View interface {
 
     // 增减子视图
@@ -18,8 +17,12 @@ type View interface {
     // 查找不到时, 返回 nil
     GetSubviewWithTag(tag string) View
 
-    // 获取父视图
+    // 父视图
+    SetSuperView(view View)
     SuperView() View
+
+    // 获取视图的矩阵信息
+    Rect() Rect
 
     // 视图宽高与其在父视图中的坐标
     SetLocation(loc Point)
@@ -42,14 +45,21 @@ type View interface {
     // 获取当前视图的内容. from, to 是当前视图内的两点, 不会为 nil
     //
     // 如果想自行实现一个特定功能的视图, 实现该方法即可控制自定义视图的内容.
+    // 如果是展示文本的视图, 请实现者自行解决以下问题, 父视图会强制处理 子视图左右边界上可能出现的 2倍宽字符 越界问题.
+    //      1. 中文等 2倍宽字符
+    //      2. ZWJ(zero-width joiner) 问题
+    //
     // 约定, 父视图承诺处理好子视图左右边界上可能出现的 2倍宽字符 越界问题.
     // 该问题会受到影响(以何种方式处理子视图优先级)
     //
-    // 这里使用二维数组作为出参, 就算外面要求给出部分视图内容, 数组元素(0,0)也一定是from这个点的数据, 约定上层会自行转化坐标, 所以(0,0)不一定是当前视图的左上角
-    GetContent(from Point, to Point) [][]*Rune
+    // 这里使用二维数组作为出参, 就算 [调用方] 要求给出部分视图内容, 数组元素(0,0)也一定是 [from] 这个点的数据, 约定 [调用方] 会自行转化坐标, 所以(0,0)不一定是当前视图的左上角
+    GetContent(from Point, to Point) [][]Rune
 
-    // 向父视图发送更新UI的通知, Rect 坐标是基于当前视图的. 详情参考方法<code>basicView.receiver()</code>
+    GetMergeContent(from Point, to Point) [][]Rune
+
+    // 向父视图发送更新UI的通知, Rect 坐标是基于当前视图的.
     UpdateUI(rect Rect)
+    Receiver() chan<- *UpdateUiMsg
 }
 
 func NewView() View {

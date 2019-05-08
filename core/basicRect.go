@@ -1,8 +1,5 @@
-package code
+package core
 
-import (
-    . "github.com/GavinGuan24/gofer/views"
-)
 
 type BasicRect struct {
     x1, y1, x2, y2 int
@@ -82,7 +79,14 @@ func (r *BasicRect) IntersectWith(r1 Rect) bool {
         return false
     }
     f, t := r1.From(), r1.To()
-    return r.ContainPoint(f) || r.ContainPoint(NewPoint(t.X(), f.Y())) || r.ContainPoint(t) || r.ContainPoint(NewPoint(f.X(), t.Y()))
+    cond1 := r.ContainPoint(f) || r.ContainPoint(NewPoint(t.X(), f.Y())) || r.ContainPoint(t) || r.ContainPoint(NewPoint(f.X(), t.Y()))
+    f, t = r.From(), r.To()
+    cond2 := r1.ContainPoint(f) || r1.ContainPoint(NewPoint(t.X(), f.Y())) || r1.ContainPoint(t) || r1.ContainPoint(NewPoint(f.X(), t.Y()))
+    return cond1 || cond2
+}
+
+func (r *BasicRect) Copy() Rect {
+    return &BasicRect{r.x1, r.y1, r.x2, r.y2}
 }
 
 func (r *BasicRect) ChangeBaseByXY(x, y int) (rn Rect) {
