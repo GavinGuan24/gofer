@@ -10,7 +10,7 @@ import (
 type ApplicationDelegate interface {
     Launched(root View)
     //返回值为是否退出
-    CanStop(code int) bool
+    WillStop(code int) bool
 }
 
 type app struct {
@@ -64,7 +64,7 @@ func (ap *app) Run(delegate ApplicationDelegate) {
     for {
         select {
         case code := <-exit:
-            if delegate.CanStop(code) {
+            if delegate.WillStop(code) {
                 ap.stop()
             }
         default:

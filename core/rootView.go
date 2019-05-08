@@ -61,7 +61,6 @@ func (v *rootView) updateUiMsgHandler(msg *UpdateUiMsg) {
     if v.Screen == nil {
         return
     }
-    log.Debug("ggg")
     if msg.GetRect() == nil {
         // root view 子身回调 或者 来自子视图的消息, 更新自身全部
         sw, sh := v.Screen.Size()

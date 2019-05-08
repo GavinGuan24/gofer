@@ -83,11 +83,27 @@ func (r *BasicRect) IntersectWith(r1 Rect) bool {
     if r1 == nil {
         return false
     }
-    f, t := r1.From(), r1.To()
-    cond1 := r.ContainPoint(f) || r.ContainPoint(NewPoint(t.X(), f.Y())) || r.ContainPoint(t) || r.ContainPoint(NewPoint(f.X(), t.Y()))
-    f, t = r.From(), r.To()
-    cond2 := r1.ContainPoint(f) || r1.ContainPoint(NewPoint(t.X(), f.Y())) || r1.ContainPoint(t) || r1.ContainPoint(NewPoint(f.X(), t.Y()))
-    return cond1 || cond2
+    f1, t1 := r.From(), r.To()
+    f2, t2 := r1.From(), r1.To()
+
+    x1 := f1.X()
+    if f2.X() > x1 {
+        x1 = f2.X()
+    }
+    y1 := f1.Y()
+    if f2.Y() > y1 {
+        y1 = f2.Y()
+    }
+    x2 := t1.X()
+    if t2.X() < x2 {
+        x2 = t2.X()
+    }
+    y2 := t1.Y()
+    if t2.Y() < y2 {
+        y2 = t2.Y()
+    }
+
+    return x1 <= x2 && y1 <= y2
 }
 
 func (r *BasicRect) Copy() Rect {

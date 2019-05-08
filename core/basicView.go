@@ -36,7 +36,7 @@ type basicView struct {
 }
 
 func (v *basicView) String() string {
-    return fmt.Sprintf("v(%v)", v.rect)
+    return fmt.Sprintf("v%p(%v)", v, v.rect)
 }
 
 func (v *basicView) AddSubview(subview View) (ok bool) {
@@ -186,7 +186,6 @@ func (v *basicView) GetContent(from Point, to Point) [][]Rune {
     x1, y1, x2, y2 := from.X(), from.Y(), to.X(), to.Y()
     h := y2 - y1 + 1
     w := x2 - x1 + 1
-    log.Info(fmt.Sprintf("==> h = %d", h))
     lines := make([][]Rune, 0, h)
     var words []Rune
     for row := 0; row < h; row++ {
@@ -209,6 +208,7 @@ func (v *basicView) GetMergeContent(from Point, to Point) [][]Rune {
     v.drawLock.Lock()
     defer v.drawLock.Unlock()
     //1. 调用 GetContent 获取当前视图原始内容的 originContent []basicRune
+    log.Debug(fmt.Sprintf("GetMergeContent from: %v, to: %v", from, to))
     originContent := v.GetContent(from, to)
     //2. 遍历子视图, 找出范围内的子视图
     svArr := make([]View, 0, 4)
@@ -229,26 +229,30 @@ func (v *basicView) GetMergeContent(from Point, to Point) [][]Rune {
         }
     }
 
-    //4. 根据子视图位置计算需要的内容范围(坐标基于子视图), 获取内容后, 迭代至现有内容中
-    for _, sv := range svArr {
-        var svCtRect Rect
-        if sv.Rect().ContainPoint(from) {
-            if sv.Rect().ContainPoint(to) {
-                svCtRect = NewRectByPoint(from, to).ChangeBaseByPoint(sv.Location())
-            } else {
-                svCtRect = NewRectByPoint(from.ChangeBaseByPoint(sv.Location()), sv.Rect().To())
-            }
-        } else {
-            if sv.Rect().ContainPoint(to) {
-                svCtRect = NewRectByPoint(sv.Rect().From(), to.ChangeBaseByPoint(sv.Location()))
-            } else {
-                svCtRect = sv.Rect().Copy()
-            }
+    //4. 计算需要的内容范围, 从子视图获取内容后, 迭代至现有内容中
+    minInt, maxInt := func(a, b int) int {
+        if a < b {
+            return a
         }
-        log.Info(fmt.Sprintf("debug01 %v", sv))
+        return b
+    }, func(a, b int) int {
+        if a > b {
+            return a
+        }
+        return b
+    }
+    for _, sv := range svArr {
+        //4.1 基于当前视图(父视图)坐标计算需要更新的范围, 并且变更坐标至子视图坐标系
+        cRect := NewRectByXY(
+            maxInt(from.X(), sv.Rect().From().X()),
+            maxInt(from.Y(), sv.Rect().From().Y()),
+            minInt(to.X(), sv.Rect().To().X()),
+            minInt(to.Y(), sv.Rect().To().Y()))
+        svCtRect := cRect.Copy().ChangeBaseByPoint(sv.Location())
+        //4.2 迭代内容
         originContent = v.iteratingContent(
             sv.GetMergeContent(svCtRect.From(), svCtRect.To()), originContent,
-            svCtRect, oRect.Copy(),
+            cRect, oRect.Copy(),
             svCtRect.From().X() == 0, svCtRect.To().X() == sv.Width()-1)
     }
     return originContent
@@ -272,6 +276,7 @@ func (v *basicView) iteratingContent(svContent, oContent [][]Rune, cRect, oRect 
         for col := 0; col < cw; col++ {
             cRune := svContent[row][col]
             oRow, oCol := row-dRow, col-dCol
+            log.Debug(fmt.Sprintf("orow:%v, ocol:%v", oRow, oCol))
             if oRow < 0 || oCol < 0 {
                 continue
             }
@@ -333,7 +338,7 @@ func (v *basicView) updateUiMsgErrorHandler() {
         stackMsg := string(debug.Stack())
         count := 0
         index := 0
-        for i,item := range stackMsg {
+        for i, item := range stackMsg {
             if item == '\n' {
                 count++
                 if count == 7 {
