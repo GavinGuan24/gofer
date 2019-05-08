@@ -37,7 +37,7 @@ func (ap *app) Run(delegate ApplicationDelegate) {
         log.Fatal(e0)
     }
     ap.root.Screen.SetStyle(tcell.StyleDefault.Foreground(tcell.ColorBlack).Background(tcell.ColorWhite).Normal())
-    log.Logger("Screen init finished.")
+    log.Info("Screen init finished.")
 
     //通知自己的监听器, 更新视图
     ap.root.UpdateUI(nil)
@@ -58,8 +58,8 @@ func (ap *app) Run(delegate ApplicationDelegate) {
     }()
 
     //暴露部分权利交给代理
-    delegate.Launched(ap.root)
-    log.Logger("delegate.Launched finished.")
+    log.Info("async: will call delegate.Launched.")
+    go delegate.Launched(ap.root)
 
     for {
         select {
@@ -71,14 +71,13 @@ func (ap *app) Run(delegate ApplicationDelegate) {
 
         }
     }
-
 }
 
 func (ap *app) stop() {
     if ap.root != nil {
         ap.root.Screen.Fini()
-        log.Logger("screen finalized.")
+        log.Info("screen finalized.")
     }
-    log.Logger("App stopped.")
+    log.Info("App stopped.")
     os.Exit(0)
 }

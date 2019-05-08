@@ -1,5 +1,7 @@
 package core
 
+import "fmt"
+
 // 矩形Rect 与 点Point 的位置关系
 type RectPointLoc int
 
@@ -24,6 +26,7 @@ const (
 )
 
 type Rect interface {
+    fmt.Stringer
     SetFrom(from Point)
     From() Point
     SetTo(to Point)

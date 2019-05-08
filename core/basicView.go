@@ -4,8 +4,13 @@ import (
     "fmt"
     "github.com/GavinGuan24/gofer/log"
     "github.com/gdamore/tcell"
+    "runtime/debug"
     "sync"
 )
+
+func init() {
+    log.Info("package init: core.basicView")
+}
 
 type basicView struct {
     // 保护 GetContent()
@@ -28,6 +33,10 @@ type basicView struct {
     style     tcell.Style
     superView View
     subviews  []View
+}
+
+func (v *basicView) String() string {
+    return fmt.Sprintf("v(%v)", v.rect)
 }
 
 func (v *basicView) AddSubview(subview View) (ok bool) {
@@ -130,7 +139,10 @@ func (v *basicView) SetLocation(loc Point) {
     if loc == nil {
         loc = NewPoint(0, 0)
     }
+    w, h := v.rect.Width(), v.rect.Height()
     v.rect.SetFrom(loc)
+    v.rect.SetWidth(w)
+    v.rect.SetHeight(h)
 }
 
 func (v *basicView) Location() Point {
@@ -174,6 +186,7 @@ func (v *basicView) GetContent(from Point, to Point) [][]Rune {
     x1, y1, x2, y2 := from.X(), from.Y(), to.X(), to.Y()
     h := y2 - y1 + 1
     w := x2 - x1 + 1
+    log.Info(fmt.Sprintf("==> h = %d", h))
     lines := make([][]Rune, 0, h)
     var words []Rune
     for row := 0; row < h; row++ {
@@ -181,7 +194,7 @@ func (v *basicView) GetContent(from Point, to Point) [][]Rune {
             if col == 0 {
                 words = make([]Rune, 0, w)
             }
-            words = append(words, BasicRune(' ', nil, v.Style()))
+            words = append(words, BasicRune('›', nil, v.Style()))
             if col == w-1 {
                 lines = append(lines, words)
             }
@@ -215,6 +228,7 @@ func (v *basicView) GetMergeContent(from Point, to Point) [][]Rune {
             }
         }
     }
+
     //4. 根据子视图位置计算需要的内容范围(坐标基于子视图), 获取内容后, 迭代至现有内容中
     for _, sv := range svArr {
         var svCtRect Rect
@@ -231,17 +245,16 @@ func (v *basicView) GetMergeContent(from Point, to Point) [][]Rune {
                 svCtRect = sv.Rect().Copy()
             }
         }
-
-
+        log.Info(fmt.Sprintf("debug01 %v", sv))
         originContent = v.iteratingContent(
             sv.GetMergeContent(svCtRect.From(), svCtRect.To()), originContent,
-            svCtRect.ChangeBaseByPoint(sv.Location().Copy().Reverse()), oRect.Copy(),
+            svCtRect, oRect.Copy(),
             svCtRect.From().X() == 0, svCtRect.To().X() == sv.Width()-1)
     }
     return originContent
 }
 
-// 迭代子视图的内容至现有视图内容中 (先处理左边界问题(2宽度留单的处理为符号 …), 再使用子视图内容复写, 同时处理右边界问题)
+// 迭代子视图的内容至现有视图内容中 (先处理左边界问题(2宽度留单的处理为符号 ›), 再使用子视图内容复写, 同时处理右边界问题)
 //
 // 以下参数均参考当前视图(父视图)的坐标系.
 // svContent: 子视图内容
@@ -259,18 +272,21 @@ func (v *basicView) iteratingContent(svContent, oContent [][]Rune, cRect, oRect 
         for col := 0; col < cw; col++ {
             cRune := svContent[row][col]
             oRow, oCol := row-dRow, col-dCol
-            if watchLeft && col == 0 {
+            if oRow < 0 || oCol < 0 {
+                continue
+            }
+            if watchLeft && col == 0 && oCol-1 >= 0 {
                 //处理左边界
                 oRune_l1 := oContent[oRow][oCol-1]
                 if oRune_l1.Width() == 2 {
-                    oRune_l1.SetMainc('…')
+                    oRune_l1.SetMainc('›')
                     oRune_l1.SetCombc(nil)
                 }
             }
             if watchRight && col == cw-1 {
                 //处理右边界
                 if cRune.Width() == 2 {
-                    cRune.SetMainc('…')
+                    cRune.SetMainc('›')
                     cRune.SetCombc(nil)
                 }
             }
@@ -299,11 +315,7 @@ func (v *basicView) UpdateUI(rect Rect) {
 //----------
 
 func (v *basicView) updateUiMsgHandler(msg *UpdateUiMsg) {
-    defer func() {
-        if o := recover(); o != nil {
-            log.Logger(fmt.Sprintf("Unknown error when update UI: %v\n", o))
-        }
-    }()
+    defer v.updateUiMsgErrorHandler()
     if kidRect := msg.GetRect(); kidRect == nil {
         //当接收到的子视图通知中的rect为空, 约定更新整个父视图(即当前视图)
         v.UpdateUI(v.rect)
@@ -312,6 +324,25 @@ func (v *basicView) updateUiMsgHandler(msg *UpdateUiMsg) {
             //当前视图先将接收到的 Rect 转变到自身坐标轴, 然后向上层通知更新自身部分内容
             v.UpdateUI(kidRect.ChangeBaseByPoint(sv.Location().Reverse()))
         }
+    }
+}
+
+func (v *basicView) updateUiMsgErrorHandler() {
+    if o := recover(); o != nil {
+        log.Error(fmt.Sprintf("Unknown error when update UI: %v", o))
+        stackMsg := string(debug.Stack())
+        count := 0
+        index := 0
+        for i,item := range stackMsg {
+            if item == '\n' {
+                count++
+                if count == 7 {
+                    index = i + 1
+                    break
+                }
+            }
+        }
+        log.Error(stackMsg[index:])
     }
 }
 

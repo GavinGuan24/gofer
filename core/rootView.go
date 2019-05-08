@@ -1,10 +1,13 @@
 package core
 
 import (
-    "fmt"
     "github.com/GavinGuan24/gofer/log"
     "github.com/gdamore/tcell"
 )
+
+func init() {
+    log.Info("package init: core.rootView")
+}
 
 // rootView 是所有视图链上的根节点, (与 app 协作)直接与 screen 交互.
 // 行为上不一定与 <code>View interface</code> 一致.
@@ -53,15 +56,12 @@ func (v *rootView) UpdateUI(rect Rect) {
 }
 
 func (v *rootView) updateUiMsgHandler(msg *UpdateUiMsg) {
-    defer func() {
-        if o := recover(); o != nil {
-            log.Logger(fmt.Sprintf("Unknown error when update UI: %v\n", o))
-        }
-    }()
+    defer v.updateUiMsgErrorHandler()
+    
     if v.Screen == nil {
         return
     }
-
+    log.Debug("ggg")
     if msg.GetRect() == nil {
         // root view 子身回调 或者 来自子视图的消息, 更新自身全部
         sw, sh := v.Screen.Size()
@@ -75,6 +75,7 @@ func (v *rootView) updateUiMsgHandler(msg *UpdateUiMsg) {
         v.Screen.Show()
         return
     }
+
     if sv := msg.GetView(); sv != nil {
         //转化子视图的内容至root view 坐标, 更新至screen
         cRect := msg.GetRect()

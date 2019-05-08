@@ -1,6 +1,10 @@
 package core
 
+import "fmt"
+
 type Point interface {
+    fmt.Stringer
+
     SetX(x int)
     X() int
     SetY(y int)

@@ -1,8 +1,13 @@
 package core
 
+import "fmt"
 
 type BasicRect struct {
     x1, y1, x2, y2 int
+}
+
+func (r *BasicRect) String() string {
+    return fmt.Sprintf("r(%v, %v)", r.From(), r.To())
 }
 
 func (r *BasicRect) SetFrom(from Point) {

@@ -1,11 +1,14 @@
 package core
 
 import (
+    "fmt"
     "github.com/gdamore/tcell"
 )
 
 // View 是对 [视图] 的抽象, 这里的默认实现是 <code>type basicView struct</code>
 type View interface {
+
+    fmt.Stringer
 
     // 增减子视图
     AddSubview(subview View) (ok bool)

@@ -1,8 +1,13 @@
 package core
 
+import "fmt"
 
 type basicPoint struct {
     x, y int
+}
+
+func (p *basicPoint) String() string {
+    return fmt.Sprintf("p(%d, %d)", p.x, p.y)
 }
 
 func (p *basicPoint) SetX(x int) {
