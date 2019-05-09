@@ -18,6 +18,7 @@ type ApplicationDelegate interface {
 
 type app struct {
     root *rootView
+    listener chan<- tcell.Event
 }
 
 func NewApp() *app {
@@ -52,10 +53,13 @@ func (ap *app) Run(delegate ApplicationDelegate) {
 
     exit := make(chan int)
 
+    listener := delegate.EventListener()
     go func() {
-        listener := delegate.EventListener()
         for {
             event := ap.root.Screen.PollEvent()
+            if event == nil {
+                continue
+            }
             switch event := event.(type) {
             case *tcell.EventKey:
                 if event.Key() == tcell.KeyCtrlQ {
@@ -80,7 +84,6 @@ func (ap *app) Run(delegate ApplicationDelegate) {
                 ap.stop()
             }
         default:
-
         }
     }
 }
@@ -89,6 +92,9 @@ func (ap *app) stop() {
     if ap.root != nil {
         ap.root.Screen.Fini()
         LogInfo("Screen finalized.")
+    }
+    if ap.listener != nil {
+        close(ap.listener)
     }
     LogInfo("App stopped.")
     os.Exit(0)

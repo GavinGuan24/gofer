@@ -63,7 +63,7 @@ func LogCrash(str string) {
     }
     logFilename := logger.Name()
     dirPath, _ := filepath.Abs(filepath.Dir(logFilename))
-    logFatal(fmt.Errorf("app is terminated.\nthe crash log has been saved in the (%v) file", dirPath + logFilename[strings.LastIndex(logFilename, "/"):]))
+    logFatal(fmt.Errorf("\u001b[1;48;2;254;218;49;31mAPP IS TERMINATED.\u001b[0m\nThe crash log has been saved in the \u001b[1;48;2;254;218;49;31m%v\u001b[0m ", dirPath + logFilename[strings.LastIndex(logFilename, "/"):]))
 }
 
 //https://gochannel.org/links/link/snapshot/7352
@@ -105,7 +105,7 @@ func logout(str string) {
 
 // 启动时的失败, TUI的渲染会占用 stdout, 所以输出到 stderr
 func logFatal(e error) {
-    fmt.Fprint(os.Stderr, "%v\n", e.Error())
+    fmt.Fprintln(os.Stderr, e.Error())
     os.Exit(1)
 }
 
