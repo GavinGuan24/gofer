@@ -1,24 +1,27 @@
-package log
+package core
 
 import (
     "bytes"
     "fmt"
+    "github.com/gdamore/tcell"
     "os"
+    "path/filepath"
+    "strings"
     "time"
 )
 
+var screenInLog tcell.Screen
 var logger *os.File
 
 func init() {
     file, e := os.OpenFile("./gofer.log", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
     if e != nil {
-        Fatal(e)
+        logFatal(e)
     }
     logger = file
 }
 
-
-func Debug(str string) {
+func LogDebug(str string) {
     var buf bytes.Buffer
     buf.WriteString("\u001b[0;0;36mDebug > ")
     buf.WriteString(str)
@@ -26,14 +29,14 @@ func Debug(str string) {
     logout(buf.String())
 }
 
-func Info(str string) {
+func LogInfo(str string) {
     var buf bytes.Buffer
     buf.WriteString("Info > ")
     buf.WriteString(str)
     logout(buf.String())
 }
 
-func Warn(str string) {
+func LogWarn(str string) {
     var buf bytes.Buffer
     buf.WriteString("\u001b[38;2;179;135;29mWarn > ")
     buf.WriteString(str)
@@ -41,7 +44,7 @@ func Warn(str string) {
     logout(buf.String())
 }
 
-func Error(str string) {
+func LogError(str string) {
     var buf bytes.Buffer
     buf.WriteString("\u001b[0;0;31mError > ")
     buf.WriteString(str)
@@ -49,12 +52,18 @@ func Error(str string) {
     logout(buf.String())
 }
 
-func Crash(str string) {
+func LogCrash(str string) {
     var buf bytes.Buffer
     buf.WriteString("\u001b[1;48;2;254;218;49;31mCrash > ")
     buf.WriteString(str)
     buf.WriteString("\u001b[0m")
     logout(buf.String())
+    if screenInLog != nil {
+        screenInLog.Fini()
+    }
+    logFilename := logger.Name()
+    dirPath, _ := filepath.Abs(filepath.Dir(logFilename))
+    logFatal(fmt.Errorf("app is terminated.\nthe crash log has been saved in the (%v) file", dirPath + logFilename[strings.LastIndex(logFilename, "/"):]))
 }
 
 //https://gochannel.org/links/link/snapshot/7352
@@ -94,9 +103,8 @@ func logout(str string) {
     fmt.Fprintln(logger, buf.String())
 }
 
-
 // 启动时的失败, TUI的渲染会占用 stdout, 所以输出到 stderr
-func Fatal(e error) {
+func logFatal(e error) {
     fmt.Fprint(os.Stderr, "%v\n", e.Error())
     os.Exit(1)
 }

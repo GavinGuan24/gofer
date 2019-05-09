@@ -2,14 +2,13 @@ package core
 
 import (
     "fmt"
-    "github.com/GavinGuan24/gofer/log"
     "github.com/gdamore/tcell"
     "runtime/debug"
     "sync"
 )
 
 func init() {
-    log.Info("package init: core.basicView")
+    LogInfo("Package init: core.basicView")
 }
 
 type basicView struct {
@@ -181,6 +180,10 @@ func (v *basicView) Style() tcell.Style {
     return v.style
 }
 
+func (v *basicView) BaseView() View {
+    return v
+}
+
 func (v *basicView) GetContent(from Point, to Point) [][]Rune {
     //就算调用方要求给出部分视图内容, 数组元素(0,0)也一定是from这个点的数据, 约定调用方会自行转化坐标
     x1, y1, x2, y2 := from.X(), from.Y(), to.X(), to.Y()
@@ -204,11 +207,15 @@ func (v *basicView) GetContent(from Point, to Point) [][]Rune {
 
 // 获取当前视图内一个区域的内容, 并转化子视图内容至当前视图内容中
 // 约定, 父视图承诺处理好子视图左右边界上可能出现的 2倍宽字符 越界问题
-func (v *basicView) GetMergeContent(from Point, to Point) [][]Rune {
-    v.drawLock.Lock()
-    defer v.drawLock.Unlock()
+func GetMergeContent(v View, from Point, to Point) [][]Rune {
+    basicV, ok := v.BaseView().(*basicView)
+    if !ok {
+        LogCrash("v cannot be a (*basicView)\n" + string(debug.Stack()))
+    }
+    basicV.drawLock.Lock()
+    defer basicV.drawLock.Unlock()
+
     //1. 调用 GetContent 获取当前视图原始内容的 originContent []basicRune
-    log.Debug(fmt.Sprintf("GetMergeContent from: %v, to: %v", from, to))
     originContent := v.GetContent(from, to)
     //2. 遍历子视图, 找出范围内的子视图
     svArr := make([]View, 0, 4)
@@ -250,8 +257,8 @@ func (v *basicView) GetMergeContent(from Point, to Point) [][]Rune {
             minInt(to.Y(), sv.Rect().To().Y()))
         svCtRect := cRect.Copy().ChangeBaseByPoint(sv.Location())
         //4.2 迭代内容
-        originContent = v.iteratingContent(
-            sv.GetMergeContent(svCtRect.From(), svCtRect.To()), originContent,
+        originContent = basicV.iteratingContent(
+            GetMergeContent(sv, svCtRect.From(), svCtRect.To()), originContent,
             cRect, oRect.Copy(),
             svCtRect.From().X() == 0, svCtRect.To().X() == sv.Width()-1)
     }
@@ -276,7 +283,6 @@ func (v *basicView) iteratingContent(svContent, oContent [][]Rune, cRect, oRect 
         for col := 0; col < cw; col++ {
             cRune := svContent[row][col]
             oRow, oCol := row-dRow, col-dCol
-            log.Debug(fmt.Sprintf("orow:%v, ocol:%v", oRow, oCol))
             if oRow < 0 || oCol < 0 {
                 continue
             }
@@ -334,7 +340,7 @@ func (v *basicView) updateUiMsgHandler(msg *UpdateUiMsg) {
 
 func (v *basicView) updateUiMsgErrorHandler() {
     if o := recover(); o != nil {
-        log.Error(fmt.Sprintf("Unknown error when update UI: %v", o))
+        LogError(fmt.Sprintf("Unknown error when update UI: %v", o))
         stackMsg := string(debug.Stack())
         count := 0
         index := 0
@@ -347,7 +353,7 @@ func (v *basicView) updateUiMsgErrorHandler() {
                 }
             }
         }
-        log.Error(stackMsg[index:])
+        LogError(stackMsg[index:])
     }
 }
 

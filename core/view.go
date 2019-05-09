@@ -45,6 +45,12 @@ type View interface {
     SetStyle(style tcell.Style)
     Style() tcell.Style
 
+    // 返回实现该接口的基类
+    // 因为golang的继承是内嵌, 不是真的继承, 所以约定这里返回实现<code>View interface</code>的基类
+    // 即, 所有"子类"均返回其内嵌("继承")的实现该接口的基类.
+    // 比如该接口的默认实现是 *basicView, 那么所有 basicView 的子类均返回内嵌的 *basicView
+    BaseView() View
+
     // 获取当前视图的内容. from, to 是当前视图内的两点, 不会为 nil
     //
     // 如果想自行实现一个特定功能的视图, 实现该方法即可控制自定义视图的内容.
@@ -58,7 +64,6 @@ type View interface {
     // 这里使用二维数组作为出参, 就算 [调用方] 要求给出部分视图内容, 数组元素(0,0)也一定是 [from] 这个点的数据, 约定 [调用方] 会自行转化坐标, 所以(0,0)不一定是当前视图的左上角
     GetContent(from Point, to Point) [][]Rune
 
-    GetMergeContent(from Point, to Point) [][]Rune
 
     // 向父视图发送更新UI的通知, Rect 坐标是基于当前视图的.
     UpdateUI(rect Rect)
