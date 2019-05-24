@@ -63,13 +63,8 @@ type View interface {
     //
     // 这里使用二维数组作为出参, 就算 [调用方] 要求给出部分视图内容, 数组元素(0,0)也一定是 [from] 这个点的数据, 约定 [调用方] 会自行转化坐标, 所以(0,0)不一定是当前视图的左上角
     GetContent(from Point, to Point) [][]Rune
-
-
-    // 向父视图发送更新UI的通知, Rect 坐标是基于当前视图的.
-    UpdateUI(rect Rect)
-    Receiver() chan<- *UpdateUiMsg
 }
 
 func NewView() View {
-    return BasicView()
+    return NewBasicView()
 }

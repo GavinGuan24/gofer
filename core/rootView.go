@@ -55,12 +55,11 @@ func (v *rootView) GetContent(from Point, to Point) [][]Rune {
 }
 
 func (v *rootView) UpdateUI(rect Rect) {
-    v.Receiver() <- NewUpdateUiMsg(nil, nil)
+    Receiver(v) <- NewUpdateUiMsg(nil, nil)
 }
 
 func (v *rootView) updateUiMsgHandler(msg *UpdateUiMsg) {
-    defer v.updateUiMsgErrorHandler()
-    
+    defer updateUiMsgErrorHandler()
     if v.Screen == nil {
         return
     }
@@ -102,10 +101,10 @@ func RootView() *rootView {
     root.basicView = &basicView{subviews: make([]View, 0, 4), rect: NewRectByXY(0, 0, 0, 0)}
     root.tagMap = make(map[string]View)
     //赋予root view 成为视图通知链根节点的能力
-    root.updateUiMsgQueue = make(chan *UpdateUiMsg)
+    root.uiMsgQueue = make(chan *UpdateUiMsg)
     go func() {
         for {
-            root.updateUiMsgHandler(<-root.updateUiMsgQueue)
+            root.updateUiMsgHandler(<-root.uiMsgQueue)
         }
     }()
     return root

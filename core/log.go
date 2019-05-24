@@ -6,6 +6,7 @@ import (
     "github.com/gdamore/tcell"
     "os"
     "path/filepath"
+    "runtime/debug"
     "strings"
     "time"
 )
@@ -45,10 +46,12 @@ func LogWarn(str string) {
 }
 
 func LogError(str string) {
+
     var buf bytes.Buffer
     buf.WriteString("\u001b[0;0;31mError > ")
     buf.WriteString(str)
-    buf.WriteString("\u001b[0m")
+    buf.WriteString("\u001b[0m\n")
+    buf.WriteString(stackMsg())
     logout(buf.String())
 }
 
@@ -56,7 +59,8 @@ func LogCrash(str string) {
     var buf bytes.Buffer
     buf.WriteString("\u001b[1;48;2;254;218;49;31mCrash > ")
     buf.WriteString(str)
-    buf.WriteString("\u001b[0m")
+    buf.WriteString("\u001b[0m\n")
+    buf.WriteString(stackMsg())
     logout(buf.String())
     if screenInLog != nil {
         screenInLog.Fini()
@@ -64,6 +68,22 @@ func LogCrash(str string) {
     logFilename := logger.Name()
     dirPath, _ := filepath.Abs(filepath.Dir(logFilename))
     logFatal(fmt.Errorf("\u001b[1;48;2;254;218;49;31mAPP IS TERMINATED.\u001b[0m\nThe crash log has been saved in the \u001b[1;48;2;254;218;49;31m%v\u001b[0m ", dirPath + logFilename[strings.LastIndex(logFilename, "/"):]))
+}
+
+func stackMsg() string {
+    stackMsg := string(debug.Stack())
+    count := 0
+    index := 0
+    for i, item := range stackMsg {
+        if item == '\n' {
+            count++
+            if count == 7 {
+                index = i + 1
+                break
+            }
+        }
+    }
+    return stackMsg[index:]
 }
 
 //https://gochannel.org/links/link/snapshot/7352

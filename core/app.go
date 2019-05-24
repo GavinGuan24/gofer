@@ -67,6 +67,9 @@ func (ap *app) Run(delegate ApplicationDelegate) {
                 } else {
                     listener <- event
                 }
+            case *tcell.EventResize:
+                ap.root.Sync()
+                ap.root.UpdateUI(nil)
             default:
                 listener <- event
             }
@@ -96,6 +99,6 @@ func (ap *app) stop() {
     if ap.listener != nil {
         close(ap.listener)
     }
-    LogInfo("App stopped.")
+    LogInfo("App stopped.\n\n")
     os.Exit(0)
 }
