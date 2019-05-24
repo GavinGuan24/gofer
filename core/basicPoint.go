@@ -61,6 +61,28 @@ func (p *basicPoint) ChangeBaseByPoint(base Point) (pn Point) {
     return p
 }
 
+func (p *basicPoint) Up(step int) Point {
+    p.y -= step
+    return p
+}
+
+func (p *basicPoint) Down(step int) Point {
+    p.y += step
+    return p
+}
+
+func (p *basicPoint) Left(step int) Point {
+    p.x -= step
+    return p
+}
+
+func (p *basicPoint) Right(step int) Point {
+    p.x += step
+    return p
+}
+
+/////////////////////
+
 func BasicPoint(x, y int) *basicPoint {
     return &basicPoint{x, y}
 }

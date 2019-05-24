@@ -21,6 +21,12 @@ type Point interface {
     // p_old(3,4) $ base(-1, -2) = p_new(4, 6)
     ChangeBaseByXY(x, y int) (pn Point)
     ChangeBaseByPoint(base Point) (pn Point)
+
+    // 概念中的移动, 改变自身坐标, 返回自身
+    Up(int) Point
+    Down(int) Point
+    Left(int) Point
+    Right(int) Point
 }
 
 func NewPoint(x, y int) Point {

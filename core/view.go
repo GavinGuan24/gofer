@@ -10,17 +10,17 @@ type View interface {
 
     fmt.Stringer
 
-    // 增减子视图
-    AddSubview(subview View) (ok bool)
+    // 增减子视图, 因为golang 是 内嵌型"继承", 所以需要真实的父类传入
+    AddSubview(subview View, realSuper View) (ok bool)
     RemoveSubview(subview View) (ok bool)
-    AddSubviewWithTag(subview View, tag string) (ok bool)
+    AddSubviewWithTag(subview View, tag string, realSuper View) (ok bool)
     RemoveSubviewWithTag(tag string) (ok bool)
     // 获取所有子视图
     GetSubviews() []View
     // 查找不到时, 返回 nil
     GetSubviewWithTag(tag string) View
 
-    // 父视图
+    // 父视图, 不要随意调用 SetSuperView, 除非你知道自己在做什么
     SetSuperView(view View)
     SuperView() View
 

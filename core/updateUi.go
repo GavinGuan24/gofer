@@ -27,13 +27,20 @@ func NewUpdateUiMsg(view View, rect Rect) *UpdateUiMsg {
 
 // 向父视图发送更新UI的通知, Rect 坐标是基于当前视图的.
 func UpdateUI(v View, rect Rect) {
+    if v == nil {
+        return
+    }
     if v.SuperView() == nil {
+        //只允许 rootView 无父视图, 且 v 为 rootView 类型时, 需要更新整个屏幕
+        if rv, ok := v.(*rootView); ok {
+            rv.updateUiMsgHandler(NewUpdateUiMsg(nil, nil))
+        }
         return
     }
     Receiver(v.SuperView()) <- NewUpdateUiMsg(v, rect)
 }
 
-// 父视图处理更新视图信息
+// 父视图处理更新视图信息(所有视图均可使用, 不含 rootView)
 func updateUiMsgHandler(v View, msg *UpdateUiMsg) {
     defer updateUiMsgErrorHandler()
     if kidRect := msg.GetRect(); kidRect == nil {
@@ -47,7 +54,7 @@ func updateUiMsgHandler(v View, msg *UpdateUiMsg) {
     }
 }
 
-// 视图更新失败处理
+// 视图更新失败处理(所有视图均可使用)
 func updateUiMsgErrorHandler() {
     if o := recover(); o != nil {
         LogError(fmt.Sprintf("Unknown error when update UI: %v", o))
@@ -113,7 +120,7 @@ func GetMergeContent(v View, from Point, to Point) [][]Rune {
     return originContent
 }
 
-// 迭代子视图的内容至现有视图内容中 (先处理左边界问题(2宽度留单的处理为符号 ›), 再使用子视图内容复写, 同时处理右边界问题)
+// 迭代子视图的内容至现有视图内容中 (先处理左边界问题(2宽度留单的处理为符号 '›', '‹'), 再使用子视图内容复写, 同时处理右边界问题)
 //
 // 以下参数均参考当前视图(父视图)的坐标系.
 // svContent: 子视图内容
@@ -122,6 +129,7 @@ func GetMergeContent(v View, from Point, to Point) [][]Rune {
 // oRect: oContent 的作用域
 // watchLeft: 注意内容的左边界问题
 // watchRight: 注意内容的右边界问题
+var TextLeftPad, TextRightPad = '›', '‹'
 func iteratingContent(svContent, oContent [][]Rune, cRect, oRect Rect, watchLeft, watchRight bool) [][]Rune {
 
     //将当前问题转化为相对做坐标的问题, 计算两个二维数组下标差值
@@ -138,15 +146,20 @@ func iteratingContent(svContent, oContent [][]Rune, cRect, oRect Rect, watchLeft
                 //处理左边界
                 oRune_l1 := oContent[oRow][oCol-1]
                 if oRune_l1.Width() == 2 {
-                    oRune_l1.SetMainc('›')
+                    oRune_l1.SetMainc(TextLeftPad)
                     oRune_l1.SetCombc(nil)
                 }
             }
             if watchRight && col == cw-1 {
                 //处理右边界
                 if cRune.Width() == 2 {
-                    cRune.SetMainc('›')
+                    cRune.SetMainc(TextLeftPad)
                     cRune.SetCombc(nil)
+                }
+                oRune := oContent[oRow][oCol]
+                if oRune.Width() == 2 {
+                    oContent[oRow][oCol+1].SetMainc(TextRightPad)
+                    oContent[oRow][oCol+1].SetCombc(nil)
                 }
             }
             // 内容复写
@@ -157,11 +170,12 @@ func iteratingContent(svContent, oContent [][]Rune, cRect, oRect Rect, watchLeft
 }
 
 
-var receiverLock sync.Mutex
+
 // 获取一个接收器. 接收器用于接收子视图的通知.
 // 通知内容为一个 message.UpdateUiMsg, 该 msg的rect坐标轴为子视图的坐标轴.
 // if message.rect == nil, 当前视图(父视图)向上层通知(当前视图的父视图/root view的上层为screen)更新自身所有内容
 // 否则, 当前视图先将接收到的 Rect 转变到自身坐标轴, 然后向上层通知更新自身部分内容
+var receiverLock sync.Mutex
 func Receiver(v View) chan<- *UpdateUiMsg {
     receiverLock.Lock()
     defer receiverLock.Unlock()

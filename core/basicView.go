@@ -37,7 +37,7 @@ func (v *basicView) String() string {
     return fmt.Sprintf("v%p(%v)", v, v.rect)
 }
 
-func (v *basicView) AddSubview(subview View) (ok bool) {
+func (v *basicView) AddSubview(subview View, realSuper View) (ok bool) {
     v.drawLock.Lock()
     defer v.drawLock.Unlock()
     v.subviewsLock.Lock()
@@ -52,7 +52,7 @@ func (v *basicView) AddSubview(subview View) (ok bool) {
         }
     }
     v.subviews = append(v.subviews, subview)
-    subview.SetSuperView(v)
+    subview.SetSuperView(realSuper)
     return true
 }
 
@@ -82,13 +82,13 @@ func (v *basicView) RemoveSubview(subview View) (ok bool) {
     }
 }
 
-func (v *basicView) AddSubviewWithTag(subview View, tag string) (ok bool) {
+func (v *basicView) AddSubviewWithTag(subview View, tag string, realSuper View) (ok bool) {
     v.tagLock.Lock()
     defer v.tagLock.Unlock()
     if subview == nil || v.tagMap[tag] != nil {
         return false
     }
-    if v.AddSubview(subview) {
+    if v.AddSubview(subview, realSuper) {
         v.tagMap[tag] = subview
         return true
     }

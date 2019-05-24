@@ -48,8 +48,8 @@ func (ap *app) Run(delegate ApplicationDelegate) {
     screenInLog = ap.root.Screen
     LogInfo("Screen init finished.")
 
-    //通知自己的监听器, 更新视图
-    ap.root.UpdateUI(nil)
+    //更新视图
+    UpdateUI(ap.root, nil)
 
     exit := make(chan int)
 
@@ -69,7 +69,7 @@ func (ap *app) Run(delegate ApplicationDelegate) {
                 }
             case *tcell.EventResize:
                 ap.root.Sync()
-                ap.root.UpdateUI(nil)
+                UpdateUI(ap.root, nil)
             default:
                 listener <- event
             }
