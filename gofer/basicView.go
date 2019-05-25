@@ -1,4 +1,4 @@
-package core
+package gofer
 
 import (
     "fmt"
@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-    LogInfo("Package init: core.basicView")
+    LogInfo("Package init: gofer.basicView")
 }
 
 type basicView struct {

@@ -1,11 +1,11 @@
-package core
+package gofer
 
 import (
     "github.com/gdamore/tcell"
 )
 
 func init() {
-    LogInfo("Package init: core.rootView")
+    LogInfo("Package init: gofer.rootView")
 }
 
 // rootView 是所有视图链上的根节点, (与 app 协作)直接与 screen 交互.
