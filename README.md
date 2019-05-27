@@ -1,7 +1,7 @@
 # gofer
 
 [gofer](https://github.com/GavinGuan24/gofer) 是一个基于 [tcell](https://github.com/gdamore/tcell) 的 TUI 框架(相对于GUI, 远程访问一台主机时, TUI更加高效).
-ta 实现了基本的 view, app 概念. 如果你使用 ta, 你可以快速构建一个基于终端中的 TUI 项目.
+ta 实现了基本的 view, app 概念. 且充分考虑Unicode排版问题, 充分利用 tcell 的按需更新的特性. 如果你使用 ta, 你可以快速构建一个基于终端中的 TUI 项目.
 
 当然, superView(father) 可以添加 subview(kid). 如果你有过 iOS 开发经历, 你会发现一些实现逻辑是相似的.
 我实现了 view 的内容更新时的整个响应链逻辑(以golang的风格), view 的内容更新仅需要调用 `core.UpdateUI(view0, rect0)`.
