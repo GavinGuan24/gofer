@@ -19,7 +19,7 @@ func (msg *UpdateUiMsg)GetRect() Rect {
     return msg.rect
 }
 
-func NewUpdateUiMsg(view View, rect Rect) *UpdateUiMsg {
+func newUpdateUiMsg(view View, rect Rect) *UpdateUiMsg {
     return &UpdateUiMsg{view, rect}
 }
 
@@ -33,11 +33,11 @@ func UpdateUI(v View, rect Rect) {
     if v.SuperView() == nil {
         //只允许 rootView 无父视图, 且 v 为 rootView 类型时, 需要更新整个屏幕
         if rv, ok := v.(*rootView); ok {
-            rv.updateUiMsgHandler(NewUpdateUiMsg(nil, nil))
+            rv.updateUiMsgHandler(newUpdateUiMsg(nil, nil))
         }
         return
     }
-    Receiver(v.SuperView()) <- NewUpdateUiMsg(v, rect)
+    Receiver(v.SuperView()) <- newUpdateUiMsg(v, rect)
 }
 
 // 父视图处理更新视图信息(所有视图均可使用, 不含 rootView)

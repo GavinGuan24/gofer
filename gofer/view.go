@@ -66,5 +66,9 @@ type View interface {
 }
 
 func NewView() View {
-    return NewBasicView()
+    return newBasicView()
+}
+
+type RootView interface {
+    View
 }

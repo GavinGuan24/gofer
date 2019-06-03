@@ -7,7 +7,7 @@ import (
 )
 
 type ApplicationDelegate interface {
-    Launched(root View)
+    Launched(root RootView)
     //返回值为是否继续执行退出
     WillStop(code int) bool
     //是否启用鼠标
@@ -31,7 +31,7 @@ func (ap *app) Run(delegate ApplicationDelegate) {
         logFatal(errors.New("ApplicationDelegate is Nil"))
     }
     //初始化根视图
-    ap.root = RootView()
+    ap.root = NewRootView()
     if screen0, e0 := tcell.NewScreen(); e0 != nil {
         logFatal(e0)
     } else {
@@ -70,6 +70,7 @@ func (ap *app) Run(delegate ApplicationDelegate) {
             case *tcell.EventResize:
                 ap.root.Sync()
                 UpdateUI(ap.root, nil)
+                listener <- event
             default:
                 listener <- event
             }

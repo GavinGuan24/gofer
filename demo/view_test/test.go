@@ -4,17 +4,16 @@ import (
     "fmt"
     "github.com/GavinGuan24/gofer/gofer"
     "github.com/gdamore/tcell"
-    "math/rand"
-    "time"
 )
 
 ///////////////////////
 type agent struct {
     v0 *View0
     v1 *View1
+    v2 *View1
 }
 
-func (a *agent) Launched(root gofer.View) {
+func (a *agent) Launched(root gofer.RootView) {
     v0 := NewView0()
     a.v0 = v0
     v0.SetLocation(gofer.NewPoint(1, 1))
@@ -30,18 +29,27 @@ func (a *agent) Launched(root gofer.View) {
     v1.SetHeight(2)
     v1.SetStyle(tcell.StyleDefault.Foreground(tcell.ColorDarkGray).Background(tcell.ColorAntiqueWhite))
     v1.SetZ(2)
-    root.AddSubview(v1, root)
+    v0.AddSubview(v1, v0)
 
-    go func() {
-       for {
-           r := (int32)(rand.Intn(256))
-           g := (int32)(rand.Intn(256))
-           b := (int32)(rand.Intn(256))
-           v0.SetStyle(tcell.StyleDefault.Background(tcell.NewRGBColor(225,225,225)).Foreground(tcell.NewRGBColor(r, g, b)))
-           gofer.UpdateUI(v0, nil)
-           time.Sleep(time.Second)
-       }
-    }()
+    v2 := NewView1()
+    a.v2 = v2
+    v2.SetLocation(gofer.NewPoint(0,0))
+    v2.SetWidth(7)
+    v2.SetHeight(2)
+    v2.SetStyle(tcell.StyleDefault.Foreground(tcell.ColorDarkGray).Background(tcell.ColorGhostWhite))
+    v2.SetZ(3)
+    root.AddSubview(v2, root)
+
+    //go func() {
+    //   for {
+    //       r := (int32)(rand.Intn(256))
+    //       g := (int32)(rand.Intn(256))
+    //       b := (int32)(rand.Intn(256))
+    //       v0.SetStyle(tcell.StyleDefault.Background(tcell.NewRGBColor(225,225,225)).Foreground(tcell.NewRGBColor(r, g, b)))
+    //       gofer.UpdateUI(v0, nil)
+    //       time.Sleep(time.Second)
+    //   }
+    //}()
 }
 
 func (a *agent) WillStop(code int) bool {
@@ -73,6 +81,18 @@ func (a *agent) EventListener() chan<- tcell.Event {
                     case event.Key() == tcell.KeyDown:
                         a.v1.SetLocation(a.v1.Location().Down(1))
                         gofer.UpdateUI(a.v1, nil)
+                    case event.Rune() == 'w':
+                        a.v2.SetLocation(a.v2.Location().Up(1))
+                        gofer.UpdateUI(a.v2, nil)
+                    case event.Rune() == 's':
+                        a.v2.SetLocation(a.v2.Location().Down(1))
+                        gofer.UpdateUI(a.v2, nil)
+                    case event.Rune() == 'a':
+                        a.v2.SetLocation(a.v2.Location().Left(1))
+                        gofer.UpdateUI(a.v2, nil)
+                    case event.Rune() == 'd':
+                        a.v2.SetLocation(a.v2.Location().Right(1))
+                        gofer.UpdateUI(a.v2, nil)
                     }
                 case *tcell.EventMouse:
                 default:

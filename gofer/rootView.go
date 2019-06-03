@@ -55,7 +55,7 @@ func (v *rootView) GetContent(from Point, to Point) [][]Rune {
 }
 
 func (v *rootView) UpdateUI(rect Rect) {
-    Receiver(v) <- NewUpdateUiMsg(nil, nil)
+    Receiver(v) <- newUpdateUiMsg(nil, nil)
 }
 
 func (v *rootView) updateUiMsgHandler(msg *UpdateUiMsg) {
@@ -78,17 +78,15 @@ func (v *rootView) updateUiMsgHandler(msg *UpdateUiMsg) {
     }
 
     if sv := msg.GetView(); sv != nil {
-        //转化子视图的内容至root view 坐标, 更新至screen
-        cRect := msg.GetRect()
+        //按子视图给的范围, 从 root view 的角度获取内容, 并更新
+        cRect := msg.GetRect().ChangeBaseByPoint(sv.Location().Reverse())
         cw, ch := cRect.Width(), cRect.Height()
-        //计算坐标差
-        dCol, dRow:= -cRect.From().X() - sv.Location().X(), -cRect.From().Y() - sv.Location().Y()
-        //更新内容
-        content := GetMergeContent(sv, cRect.From(), cRect.To())
+        from, to := cRect.From(), cRect.To()
+        content := GetMergeContent(v, from, to)
         for row := 0; row < ch; row++ {
             for col := 0; col < cw; col++ {
                 cRune := content[row][col]
-                v.Screen.SetContent(col-dCol, row-dRow, cRune.Mainc(), cRune.Combc(), cRune.Style())
+                v.Screen.SetContent(col+from.X(), row+from.Y(), cRune.Mainc(), cRune.Combc(), cRune.Style())
             }
         }
         v.Screen.Show()
@@ -96,7 +94,7 @@ func (v *rootView) updateUiMsgHandler(msg *UpdateUiMsg) {
     }
 }
 
-func RootView() *rootView {
+func NewRootView() *rootView {
     root := &rootView{}
     root.basicView = &basicView{subviews: make([]View, 0, 4), rect: NewRectByXY(0, 0, 0, 0)}
     root.tagMap = make(map[string]View)

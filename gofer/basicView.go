@@ -206,7 +206,7 @@ func (v *basicView) GetContent(from Point, to Point) [][]Rune {
 
 //----------
 
-func NewBasicView() *basicView {
+func newBasicView() *basicView {
     bv := &basicView{subviews: make([]View, 0, 4), rect: NewRectByXY(0, 0, 0, 0)}
     bv.tagMap = make(map[string]View)
     return bv
