@@ -10,3 +10,19 @@ ta 实现了基本的 view, app 概念. 且充分考虑Unicode排版问题, 充�
 
 后续, 我将封装一些常用的 widget.
 
+## version
+
+|version|date|commit id|
+|:---:|:---:|:---:|
+|0.0.2|20190603|master|
+|0.0.1|20190525|9fb25da9d|
+
+## change
+20190603
+EventResize 交给 ApplicationDelegate 处理; UpdateUiMsg 私有化, 避免下游开发者的困扰;
+
+## bugfix
+
+20190603
+root view 处理 subview 消息时, 仅更新该 subview 导致内容优先级出错.
+
