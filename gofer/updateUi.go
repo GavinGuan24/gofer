@@ -130,7 +130,7 @@ func GetMergeContent(v View, from Point, to Point) [][]Rune {
 // oRect: oContent 的作用域
 // watchLeft: 注意内容的左边界问题 1. 当子视图的左边界在渲染区, 父视图内容可能会干扰; 2. 当子视图的渲染区在父视图的左边界, 子视图内容需要被占位符'›'填充(这种情况, 父视图因为信息缺失, 无法处理, 应由子视图自行约束)
 // watchRight: 注意内容的右边界问题 1. 当子视图的右边界在渲染区, 父视图内容可能会干扰; 2. 当子视图的渲染区在父视图的右边界, 子视图内容需要被占位符'›'填充
-var TextPad2R, TextPad2L = '›', '‹'
+
 func iteratingContent(svContent, oContent [][]Rune, cRect, oRect Rect, watchLeft, watchRight bool) [][]Rune {
 
     //将当前问题转化为相对做坐标的问题, 计算两个二维数组下标差值
@@ -147,19 +147,19 @@ func iteratingContent(svContent, oContent [][]Rune, cRect, oRect Rect, watchLeft
                 //处理左边界
                 oRune_l1 := oContent[oRow][oCol-1]
                 if oRune_l1.Width() == 2 {
-                    oRune_l1.SetMainc(TextPad2R)
+                    oRune_l1.SetMainc(TextPadRight)
                     oRune_l1.SetCombc(nil)
                 }
             }
             if watchRight && col == cw-1 {
                 //处理右边界
                 if cRune.Width() == 2 {
-                    cRune.SetMainc(TextPad2R)
+                    cRune.SetMainc(TextPadRight)
                     cRune.SetCombc(nil)
                 }
                 oRune := oContent[oRow][oCol]
                 if oRune.Width() == 2 {
-                    oContent[oRow][oCol+1].SetMainc(TextPad2L)
+                    oContent[oRow][oCol+1].SetMainc(TextPadLeft)
                     oContent[oRow][oCol+1].SetCombc(nil)
                 }
             }

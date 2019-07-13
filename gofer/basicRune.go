@@ -23,7 +23,7 @@ func (r *basicRune) SetMainc(mainc rune) {
 }
 func (r *basicRune) Mainc() rune {
     if r == nil {
-        return ' '
+        return Empty
     }
     return r.mainc
 }

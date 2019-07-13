@@ -5,6 +5,12 @@ import (
     "github.com/gdamore/tcell"
 )
 
+const (
+    Empty        = ' '
+    TextPadRight = '›'
+    TextPadLeft  = '‹'
+)
+
 // 某视图中字符位的描述, 位置由使用 Rune 的程序维护.
 // 默认实现为 basicRune
 type Rune interface {
@@ -20,9 +26,32 @@ type Rune interface {
     Width() int
 }
 
-
 func NewRune(mainc rune, combc []rune, style tcell.Style) Rune {
     return BasicRune(mainc, combc, style)
+}
+
+func StringToRunes(text string, style tcell.Style) []Rune {
+    //从头至尾处理 v.text 为 type Rune interface. Unicode的规则很多, 先将规则简化为仅参考 runewidth.RuneWidth(t) 结果与 连接符 0x200D 这两项
+    myRunes := make([]Rune, 0, len(text))
+    var lastRune Rune
+    zwj := false
+    for _, t := range text {
+        if t == 0x200D {
+            if lastRune != nil {
+                lastRune.SetCombc(append(lastRune.Combc(), t))
+                zwj = true
+            }
+            continue
+        }
+        if zwj {
+            lastRune.SetCombc(append(lastRune.Combc(), t))
+            zwj = false
+            continue
+        }
+        lastRune = NewRune(t, nil, style)
+        myRunes = append(myRunes, lastRune)
+    }
+    return myRunes
 }
 
 //以下这个文档是为了以后优化 方法<code>Width() int</code>
@@ -97,4 +126,3 @@ func NewRune(mainc rune, combc []rune, style tcell.Style) Rune {
 // [编码对照表](https://blog.csdn.net/coolwu/article/details/79752396)
 // [unicode 与安全](https://blog.csdn.net/P5dEyT322JACS/article/details/79454805)
 //
-

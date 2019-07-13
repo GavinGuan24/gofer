@@ -195,7 +195,7 @@ func (v *basicView) GetContent(from Point, to Point) [][]Rune {
             if col == 0 {
                 words = make([]Rune, 0, w)
             }
-            words = append(words, BasicRune(' ', nil, v.Style()))
+            words = append(words, BasicRune(Empty, nil, v.Style()))
             if col == w-1 {
                 lines = append(lines, words)
             }

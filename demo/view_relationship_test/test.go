@@ -95,6 +95,9 @@ func (a *agent) EventListener() chan<- tcell.Event {
                         gofer.UpdateUI(a.v2, nil)
                     }
                 case *tcell.EventMouse:
+                    gofer.LogDebug(fmt.Sprintf("Event: Mouse."))
+                case *tcell.EventResize:
+                    gofer.LogDebug(fmt.Sprintf("Event: Resize Window."))
                 default:
                     gofer.LogWarn(fmt.Sprintf("Unknown event %v", event))
                 }
