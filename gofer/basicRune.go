@@ -2,7 +2,6 @@ package gofer
 
 import (
     "bytes"
-    "fmt"
     "github.com/gdamore/tcell"
     "github.com/mattn/go-runewidth"
 )
@@ -56,15 +55,15 @@ func (r *basicRune) String() string {
     if r == nil {
         return ""
     }
-    if r.combc == nil || len(r.combc) == 0 {
-        return fmt.Sprintf("%c", r.mainc)
+    if len(r.combc) == 0 {
+        return string(r.mainc)
     } else {
         var buf bytes.Buffer
         buf.WriteRune(r.mainc)
         for _, t := range r.combc {
             buf.WriteRune(t)
         }
-        return fmt.Sprintf("%s", buf.String())
+        return buf.String()
     }
 }
 

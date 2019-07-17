@@ -19,7 +19,7 @@ func (a *agent) Launched(root gofer.RootView) {
     a.v1 = textview
     textview.SetText("type your text here in English mode.")
     textview.SetLocation(gofer.NewPoint(6, 5))
-    textview.SetStyle(tcell.StyleDefault.Foreground(tcell.NewRGBColor(255,250,227)).Background(tcell.NewRGBColor(0,0,0)))
+    textview.SetStyle(tcell.StyleDefault.Foreground(tcell.NewRGBColor(255, 250, 227)).Background(tcell.NewRGBColor(0, 0, 0)))
     root.AddSubview(textview, root)
     _root = root
 }
@@ -42,23 +42,22 @@ func (a *agent) EventListener() chan<- tcell.Event {
                 case *tcell.EventKey:
                     switch {
                     case event.Key() == tcell.KeyEnter:
-                       a.v1.SetText("")
-                       gofer.UpdateUI(_root, nil)
+                        a.v1.SetText("")
+                        gofer.UpdateUI(_root, nil)
                     case event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 || event.Key() == tcell.KeyDelete:
-                        text := a.v1.Text()
-                        length := len(text)
+                        runes := []rune(a.v1.Text())
+                        length := len(runes)
                         if length > 0 {
-                            a.v1.SetText(text[:length-1])
+                            a.v1.SetText(string(runes[:length-1]))
                             gofer.UpdateUI(_root, nil)
                         }
                     case validRune(event.Rune()):
-                       text := a.v1.Text()
-                       l := len(text)
-                       if l >= 36 {
-                          text = ""
-                       }
-                       text += string(event.Rune())
-                       a.v1.SetText(text)
+                        runes := []rune(a.v1.Text())
+                        if a.v1.TextWidth() >= 36 {
+                            runes = []rune{}
+                        }
+                        runes = append(runes, event.Rune())
+                        a.v1.SetText(string(runes))
                         gofer.UpdateUI(_root, nil)
                     }
                 case *tcell.EventMouse:
