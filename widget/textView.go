@@ -22,11 +22,11 @@ func (v *TextView) GetContent(from gofer.Point, to gofer.Point) [][]gofer.Rune {
             continue
         }
         if flag-from.X()-step == runeWidth {
-            //刚好处理到一个完整字符(单/二宽字符)
+            //刚好处理到一个完整字符(单/二倍宽字符)
             content[0][step] = tRune
             step += runeWidth
         } else {
-            //刚好处理到一个二宽字符(被截断)
+            //刚好处理到一个二倍宽字符(被截断)
             if from.X() == to.X() {
                 content[0][step] = gofer.NewRune(gofer.TextPadRight, nil, v.Style())
             } else {

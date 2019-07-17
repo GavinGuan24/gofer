@@ -67,7 +67,16 @@ func (v *rootView) updateUiMsgHandler(msg *UpdateUiMsg) {
         // root view 子身回调 或者 来自子视图的消息, 更新自身全部
         sw, sh := v.Screen.Size()
         content := GetMergeContent(v, NewPoint(0, 0), NewPoint(sw-1, sh-1))
-        v.Screen.Clear()
+
+        //处理二倍宽字符在更新过程中导致的异常空白区, 该bug是tcell本身的问题, 如果官方不修复, 就只能使用下面的代码段折中处理.
+        for row := 0; row < sh; row++ {
+            _, _, _, width := v.Screen.GetContent(sw-2, row)
+            if width > 1 {
+                v.Screen.Clear()
+                v.Screen.Show()
+            }
+        }
+
         for row, line := range content {
             for col, cRune := range line {
                 v.Screen.SetContent(col, row, cRune.Mainc(), cRune.Combc(), cRune.Style())

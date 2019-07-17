@@ -77,9 +77,12 @@ func (ap *app) Run(delegate ApplicationDelegate) {
         }
     }()
 
-    //暴露部分权利交给代理(这里不用再调用一次UpdateUI(); 因为事件循环中, EventResize 会自动触发UpdateUI(); 窗口初始化后, 框架会自动发送一次EventResize)
+    //暴露部分权利交给代理
     LogInfo("Async: will call delegate.Launched.")
-    go delegate.Launched(ap.root)
+    go func() {
+        delegate.Launched(ap.root)
+        UpdateUI(ap.root, nil)
+    }()
 
     for {
         select {

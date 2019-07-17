@@ -30,7 +30,7 @@ func (a *agent) Launched(root gofer.RootView) {
 
     textview := widget.NewTextView(3)
     a.v1 = textview
-    textview.SetText("a中")
+    textview.SetText("b国")
     textview.SetLocation(gofer.NewPoint(6, 5))
     textview.SetStyle(tcell.StyleDefault.Foreground(tcell.NewRGBColor(255,250,227)).Background(tcell.NewRGBColor(0,0,0)))
     root.AddSubview(textview, root)
