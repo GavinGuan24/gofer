@@ -7,33 +7,21 @@ import (
     "github.com/gdamore/tcell"
 )
 
+var _root gofer.RootView
+
 type agent struct {
-    v1 gofer.View
-    v2 gofer.View
+    v1 *widget.TextView
 }
 
 func (a *agent) Launched(root gofer.RootView) {
-
-    bg := gofer.NewView()
-    bg.SetWidth(5)
-    bg.SetHeight(3)
-    bg.SetLocation(gofer.NewPoint(1, 1))
-    bg.SetStyle(tcell.StyleDefault.Background(tcell.NewRGBColor(225,225,225)))
-    root.AddSubview(bg, root)
-
-    textview2 := widget.NewTextView(3)
-    a.v2 = textview2
-    textview2.SetText("a中")
-    textview2.SetLocation(gofer.NewPoint(1, 1))
-    textview2.SetStyle(tcell.StyleDefault.Foreground(tcell.NewRGBColor(255,250,227)).Background(tcell.NewRGBColor(0,0,0)))
-    bg.AddSubview(textview2, bg)
-
     textview := widget.NewTextView(3)
+    textview.SetWidth(36)
     a.v1 = textview
-    textview.SetText("b国")
+    textview.SetText("type your text here in English mode.")
     textview.SetLocation(gofer.NewPoint(6, 5))
     textview.SetStyle(tcell.StyleDefault.Foreground(tcell.NewRGBColor(255,250,227)).Background(tcell.NewRGBColor(0,0,0)))
     root.AddSubview(textview, root)
+    _root = root
 }
 
 func (a *agent) WillStop(code int) bool {
@@ -53,30 +41,25 @@ func (a *agent) EventListener() chan<- tcell.Event {
                 switch event := event.(type) {
                 case *tcell.EventKey:
                     switch {
-                    case event.Key() == tcell.KeyLeft:
-                        a.v1.SetLocation(a.v1.Location().Left(1))
-                        gofer.UpdateUI(a.v1, nil)
-                    case event.Key() == tcell.KeyRight:
-                        a.v1.SetLocation(a.v1.Location().Right(1))
-                        gofer.UpdateUI(a.v1, nil)
-                    case event.Key() == tcell.KeyUp:
-                        a.v1.SetLocation(a.v1.Location().Up(1))
-                        gofer.UpdateUI(a.v1, nil)
-                    case event.Key() == tcell.KeyDown:
-                        a.v1.SetLocation(a.v1.Location().Down(1))
-                        gofer.UpdateUI(a.v1, nil)
-                    case event.Rune() == 'w':
-                        a.v2.SetLocation(a.v2.Location().Up(1))
-                        gofer.UpdateUI(a.v2, nil)
-                    case event.Rune() == 's':
-                        a.v2.SetLocation(a.v2.Location().Down(1))
-                        gofer.UpdateUI(a.v2, nil)
-                    case event.Rune() == 'a':
-                        a.v2.SetLocation(a.v2.Location().Left(1))
-                        gofer.UpdateUI(a.v2, nil)
-                    case event.Rune() == 'd':
-                        a.v2.SetLocation(a.v2.Location().Right(1))
-                        gofer.UpdateUI(a.v2, nil)
+                    case event.Key() == tcell.KeyEnter:
+                       a.v1.SetText("")
+                       gofer.UpdateUI(_root, nil)
+                    case event.Key() == tcell.KeyBackspace || event.Key() == tcell.KeyBackspace2 || event.Key() == tcell.KeyDelete:
+                        text := a.v1.Text()
+                        length := len(text)
+                        if length > 0 {
+                            a.v1.SetText(text[:length-1])
+                            gofer.UpdateUI(_root, nil)
+                        }
+                    case validRune(event.Rune()):
+                       text := a.v1.Text()
+                       l := len(text)
+                       if l >= 36 {
+                          text = ""
+                       }
+                       text += string(event.Rune())
+                       a.v1.SetText(text)
+                        gofer.UpdateUI(_root, nil)
                     }
                 case *tcell.EventMouse:
                     gofer.LogDebug(fmt.Sprintf("Event: Mouse."))
@@ -90,6 +73,10 @@ func (a *agent) EventListener() chan<- tcell.Event {
         }
     }()
     return listener
+}
+
+func validRune(r rune) bool {
+    return true
 }
 
 func main() {
